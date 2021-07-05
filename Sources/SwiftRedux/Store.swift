@@ -36,8 +36,7 @@ public final class Store<State, Action>: ObservableObject {
         state = reducer(state, action)
     }
     
-    public func dispatch(action: Action) {
-        guard Thread.isMainThread else { fatalError("The dispatch(action:) function must be used from the Main Thread") }
+    public func dispatch(action: Action) {        
         dispatchWithMiddleware(action)
     }
 }
