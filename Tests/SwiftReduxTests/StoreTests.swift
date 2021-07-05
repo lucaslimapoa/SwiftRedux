@@ -78,6 +78,30 @@ final class StoreTests: XCTestCase {
         
         waitForExpectations(timeout: 1)
     }
+    
+    func testThunkMiddlewareWithContextRunsInMiddleware() {
+        let expectation = expectation(description: "should run thunk middleware")
+        
+        final class Context {
+            var cancellables = Set<AnyCancellable>()
+        }
+        
+        let testContext = Context()
+        let testMiddleware = ThunkMiddleware<TestState, TestAction>(context: testContext) { store, next, action, context in
+            expectation.fulfill()
+            XCTAssertTrue(testContext === context)
+        }
+
+        let store = Store(
+            initialState: TestState(counter: 0),
+            reducer: testReducer,
+            middleware: [testMiddleware]
+        )
+
+        store.dispatch(action: .increaseCounter)
+        
+        waitForExpectations(timeout: 1)
+    }
 }
 
 struct TestState: Equatable {
