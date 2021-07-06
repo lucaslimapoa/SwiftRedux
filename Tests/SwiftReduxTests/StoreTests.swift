@@ -120,15 +120,8 @@ final class StoreTests: XCTestCase {
     }
 }
 
-struct TestState: Equatable {
-    var counter = 0
-}
 
-enum TestAction: Action {
-    case increaseCounter
-}
-
-let testReducer = Reducer<TestState> { state, action in
+private let testReducer = Reducer<TestState> { state, action in
     switch action as? TestAction {
     case .increaseCounter:
         var copyState = state
