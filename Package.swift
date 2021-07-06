@@ -7,6 +7,7 @@ let package = Package(
     name: "SwiftRedux",
     platforms: [
         .iOS(.v13),
+        .tvOS(.v13),
         .macOS(.v10_15)
     ],
     products: [

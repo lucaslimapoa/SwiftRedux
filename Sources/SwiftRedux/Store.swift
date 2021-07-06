@@ -8,24 +8,18 @@
 import Foundation
 import SwiftUI
 
-public final class Store<State, Action>: ObservableObject {
+public final class Store<State>: ObservableObject {
     @Published public private(set) var state: State
-    private let reducer: Reducer<State, Action>
-    private var dispatchWithMiddleware: DispatchFunction<Action>!
+    private let reducer: Reducer<State>
+    private var dispatchWithMiddleware: DispatchFunction!
     
-    public init(initialState: State, reducer: Reducer<State, Action>) {
-        self.state = initialState
-        self.reducer = reducer
-        self.dispatchWithMiddleware = storeDispatch
-    }
-    
-    public init<T>(initialState: State, reducer: Reducer<State, Action>, middleware: [T]) where T: MiddlewareType, T.Action == Action, T.State == State {
+    public init(initialState: State, reducer: Reducer<State>, middleware: [Middleware<State>] = []) {
         self.state = initialState
         self.reducer = reducer
         self.dispatchWithMiddleware = Self.applyMiddleware(middleware, store: ({ [unowned self] in self.state }, storeDispatch))
     }
     
-    private static func applyMiddleware<State, T>(_ middleware: [T], store: StoreAPI<State, Action>) -> (Action) -> Void where T: MiddlewareType, T.Action == Action, T.State == State {
+    private static func applyMiddleware(_ middleware: [Middleware<State>], store: StoreAPI<State>) -> (Action) -> Void {
         middleware.reversed()
             .reduce({ action in store.dispatch(action) }) { current, next in
                 next(store)(current)

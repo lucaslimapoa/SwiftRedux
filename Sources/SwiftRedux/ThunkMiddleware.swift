@@ -7,20 +7,12 @@
 
 import Foundation
 
-public struct ThunkMiddleware<State, Action>: MiddlewareType {
-    private let middleware: (StoreAPI<State, Action>) -> (@escaping DispatchFunction<Action>) -> (Action) -> Void
-    
-    public init<Context>(context: Context, _ middlewareFunction: @escaping (StoreAPI<State, Action>, DispatchFunction<Action>, Action, Context) -> Void) {
-        self.middleware = { store in
-            return { next in
-                return { action in
-                    return middlewareFunction(store, next, action, context)
-                }
-            }
+public func createThunkMiddleware<State>() -> Middleware<State> {
+    return Middleware<State> { store, next, action in
+        if let thunk = action as? ThunkAction<State> {
+            thunk(store)
         }
-    }
-    
-    public func callAsFunction(_ store: StoreAPI<State, Action>) -> (@escaping DispatchFunction<Action>) -> (Action) -> Void {
-        middleware(store)
+        
+        next(action)
     }
 }

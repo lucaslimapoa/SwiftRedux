@@ -19,7 +19,7 @@ final class StoreTests: XCTestCase {
 
     func testStoreHasUpdatedStateWhenActionIsDispatched() {
         let store = Store(initialState: TestState(counter: 0), reducer: testReducer)
-        store.dispatch(action: .increaseCounter)
+        store.dispatch(action: TestAction.increaseCounter)
         XCTAssertEqual(store.state, TestState(counter: 1))
     }
 
@@ -32,7 +32,7 @@ final class StoreTests: XCTestCase {
         }
         .store(in: &disposeBag)
 
-        store.dispatch(action: .increaseCounter)
+        store.dispatch(action: TestAction.increaseCounter)
         
         waitForExpectations(timeout: 1)
     }
@@ -40,7 +40,7 @@ final class StoreTests: XCTestCase {
     func testStoreRunsMiddlewareInDispatch() {
         let expectation = expectation(description: "should run middleware in dispatch")
         
-        let testMiddleware = Middleware<TestState, TestAction> { store, next, action in
+        let testMiddleware = Middleware<TestState> { store, next, action in
             expectation.fulfill()
             next(action)
         }
@@ -51,7 +51,7 @@ final class StoreTests: XCTestCase {
             middleware: [testMiddleware]
         )
         
-        store.dispatch(action: .increaseCounter)
+        store.dispatch(action: TestAction.increaseCounter)
         
         waitForExpectations(timeout: 1)
     }
@@ -59,11 +59,11 @@ final class StoreTests: XCTestCase {
     func testStoreRunsMiddlewareInSequence() {
         let expectation = expectation(description: "should run middleware in sequence")
         
-        let testMiddleware1 = Middleware<TestState, TestAction> { store, next, action in
+        let testMiddleware1 = Middleware<TestState> { store, next, action in
             next(action)
         }
         
-        let testMiddleware2 = Middleware<TestState, TestAction> { store, next, action in
+        let testMiddleware2 = Middleware<TestState> { store, next, action in
             expectation.fulfill()
             next(action)
         }
@@ -74,31 +74,25 @@ final class StoreTests: XCTestCase {
             middleware: [testMiddleware1, testMiddleware2]
         )
         
-        store.dispatch(action: .increaseCounter)
+        store.dispatch(action: TestAction.increaseCounter)
         
         waitForExpectations(timeout: 1)
     }
     
-    func testThunkMiddlewareWithContextRunsInMiddleware() {
+    func testStoreCanDispatchThunkAction() {
         let expectation = expectation(description: "should run thunk middleware")
-        
-        final class Context {
-            var cancellables = Set<AnyCancellable>()
-        }
-        
-        let testContext = Context()
-        let testMiddleware = ThunkMiddleware<TestState, TestAction>(context: testContext) { store, next, action, context in
+                
+        let thunkAction = ThunkAction<TestState> { store in
             expectation.fulfill()
-            XCTAssertTrue(testContext === context)
         }
 
         let store = Store(
             initialState: TestState(counter: 0),
             reducer: testReducer,
-            middleware: [testMiddleware]
+            middleware: [createThunkMiddleware()]
         )
 
-        store.dispatch(action: .increaseCounter)
+        store.dispatch(action: thunkAction)
         
         waitForExpectations(timeout: 1)
     }
@@ -108,15 +102,17 @@ struct TestState: Equatable {
     var counter = 0
 }
 
-enum TestAction {
+enum TestAction: Action {
     case increaseCounter
 }
 
-let testReducer = Reducer<TestState, TestAction> { state, action in
-    switch action {
+let testReducer = Reducer<TestState> { state, action in
+    switch action as? TestAction {
     case .increaseCounter:
         var copyState = state
         copyState.counter = copyState.counter + 1
         return copyState
+    case .none:
+        return state
     }
 }

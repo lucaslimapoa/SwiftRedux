@@ -7,4 +7,4 @@
 
 import Foundation
 
-public typealias StoreAPI<State, Action> = (state: () -> State, dispatch: DispatchFunction<Action>)
+public typealias StoreAPI<State> = (state: () -> State, dispatch: DispatchFunction)

@@ -7,9 +7,7 @@
 
 import Foundation
 
-public typealias AnyAction = Any
-
-public struct Reducer<State, Action>  {
+public struct Reducer<State> {
     private let reduce: (State, Action) -> State
     
     public init(_ reduce: @escaping (State, Action) -> State) {
@@ -20,8 +18,7 @@ public struct Reducer<State, Action>  {
         reduce(state, action)
     }
     
-    public func callAsFunction(_ state: State, _ action: AnyAction) -> State {
-        guard let action = action as? Action else { return state }
-        return reduce(state, action)
+    public func callAsFunction<T>(_ state: State, _ action: T) -> State where T: Action {
+        reduce(state, action as T)
     }
 }

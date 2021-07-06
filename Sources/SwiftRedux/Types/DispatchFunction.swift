@@ -7,4 +7,4 @@
 
 import Foundation
 
-public typealias DispatchFunction<Action> = (Action) -> Void
+public typealias DispatchFunction = (Action) -> Void
