@@ -14,9 +14,9 @@ public struct ThunkAction<State>: Action {
         self.thunk = thunk
     }
     
-    public init<Context>(context: Context, _ thunk: @escaping (StoreAPI<State>, Context) -> Void) {
+    public init<Context>(context: @escaping @autoclosure () -> Context, _ thunk: @escaping (StoreAPI<State>, Context) -> Void) {
         self.thunk = { store in
-            thunk(store, context)
+            thunk(store, context())
         }
     }
     

@@ -20,9 +20,3 @@ public struct StateSlice<T> {
         state[keyPath: keyPath]
     }
 }
-
-extension View {
-    public func sliceState<State, InnerState>(store: Store<State>, innerState: KeyPath<State, InnerState>) -> StateSlice<InnerState> {
-        StateSlice(state: store.state[keyPath: innerState])
-    }
-}
