@@ -10,11 +10,11 @@ import Foundation
 public struct ThunkAction<State>: Action {
     private let thunk: (StoreAPI<State>) -> Void
     
-    init(_ thunk: @escaping (StoreAPI<State>) -> Void) {
+    public init(_ thunk: @escaping (StoreAPI<State>) -> Void) {
         self.thunk = thunk
     }
     
-    init<Context>(context: Context, _ thunk: @escaping (StoreAPI<State>, Context) -> Void) {
+    public init<Context>(context: Context, _ thunk: @escaping (StoreAPI<State>, Context) -> Void) {
         self.thunk = { store in
             thunk(store, context)
         }
