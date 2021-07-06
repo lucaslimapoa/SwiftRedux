@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 @dynamicMemberLookup
-public struct StateSlice<T, Action> {
+public struct StateSlice<T> {
     private let state: T
     
     init(state: T) {
@@ -22,7 +22,7 @@ public struct StateSlice<T, Action> {
 }
 
 extension View {
-    public func sliceState<State, Action, InnerState>(store: Store<State>, innerState: KeyPath<State, InnerState>) -> StateSlice<InnerState, Action> {
+    public func sliceState<State, InnerState>(store: Store<State>, innerState: KeyPath<State, InnerState>) -> StateSlice<InnerState> {
         StateSlice(state: store.state[keyPath: innerState])
     }
 }
