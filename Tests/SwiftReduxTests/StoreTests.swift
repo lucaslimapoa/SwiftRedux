@@ -80,9 +80,31 @@ final class StoreTests: XCTestCase {
     }
     
     func testStoreCanDispatchThunkAction() {
-        let expectation = expectation(description: "should run thunk middleware")
+        let expectation = expectation(description: "store can dispatch thunk")
                 
         let thunkAction = ThunkAction<TestState> { store in
+            expectation.fulfill()
+        }
+
+        let store = Store(
+            initialState: TestState(counter: 0),
+            reducer: testReducer,
+            middleware: [createThunkMiddleware()]
+        )
+
+        store.dispatch(action: thunkAction)
+        
+        waitForExpectations(timeout: 1)
+    }
+    
+    func testThunkActionWithContextSendsContextWhenAvailable() {
+        let expectation = expectation(description: "should run thunk action with context")
+                
+        class Context { }
+        let testContext = Context()
+        
+        let thunkAction = ThunkAction<TestState>(context: testContext) { store, context in
+            XCTAssertTrue(testContext === context)
             expectation.fulfill()
         }
 

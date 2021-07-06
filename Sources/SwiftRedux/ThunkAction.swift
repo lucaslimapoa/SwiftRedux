@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  ThunkAction.swift
 //  
 //
 //  Created by Lucas Lima on 06.07.21.
@@ -12,6 +12,12 @@ public struct ThunkAction<State>: Action {
     
     init(_ thunk: @escaping (StoreAPI<State>) -> Void) {
         self.thunk = thunk
+    }
+    
+    init<Context>(context: Context, _ thunk: @escaping (StoreAPI<State>, Context) -> Void) {
+        self.thunk = { store in
+            thunk(store, context)
+        }
     }
     
     public func callAsFunction(_ store: StoreAPI<State>) {
