@@ -118,14 +118,50 @@ final class StoreTests: XCTestCase {
         
         waitForExpectations(timeout: 1)
     }
+    
+    func testSliceStoreReturnsStoreSliceWithCurrentState() {
+        let store = Store(
+            initialState: TestState(
+                counter: 0,
+                innerState: InnerState(
+                    counter: 5
+                )
+            ),
+            reducer: testReducer
+        )
+        
+        let storeSlice = store.sliceStore(state: \.innerState, actionType: TestAction.self)
+        
+        XCTAssertEqual(storeSlice.counter, 5)
+    }
+    
+    func testSliceStoreDispatchesActionToStore() {
+        let store = Store(
+            initialState: TestState(
+                counter: 0,
+                innerState: InnerState(
+                    counter: 0
+                )
+            ),
+            reducer: testReducer
+        )
+        
+        let storeSlice = store.sliceStore(state: \.innerState, actionType: TestAction.self)
+        storeSlice.dispatch(action: .increaseInnerCounter)
+        
+        XCTAssertEqual(storeSlice.counter, 1)
+    }
 }
-
 
 private let testReducer = Reducer<TestState> { state, action in
     switch action as? TestAction {
     case .increaseCounter:
         var copyState = state
         copyState.counter = copyState.counter + 1
+        return copyState
+    case .increaseInnerCounter:
+        var copyState = state
+        copyState.innerState.counter = copyState.innerState.counter + 1
         return copyState
     case .none:
         return state

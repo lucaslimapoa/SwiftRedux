@@ -10,4 +10,5 @@ import Foundation
 
 enum TestAction: Action {
     case increaseCounter
+    case increaseInnerCounter
 }

@@ -7,6 +7,11 @@
 
 import Foundation
 
+struct InnerState: Equatable {
+    var counter = 0
+}
+
 struct TestState: Equatable {
     var counter = 0
+    var innerState = InnerState()
 }
