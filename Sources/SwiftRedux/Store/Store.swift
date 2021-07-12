@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftUI
+import Combine
 
 public final class Store<State>: ObservableObject {
     @Published public private(set) var state: State
@@ -30,7 +30,16 @@ public final class Store<State>: ObservableObject {
         state = reducer(state, action)
     }
     
-    public func dispatch(action: Action) {        
+    public func dispatch(action: Action) {
         dispatchWithMiddleware(action)
     }
+    
+    public func sliceStore<InnerState, ActionType>(state: KeyPath<State, InnerState>,
+                                                   actionType: ActionType.Type) -> StoreSlice<InnerState, ActionType> {
+        StoreSlice(
+            state: { self.state[keyPath: state] },
+            dispatch: dispatch(action:)
+        )
+    }
 }
+

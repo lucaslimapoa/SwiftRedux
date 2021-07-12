@@ -24,4 +24,8 @@ public final class StoreSlice<State, ActionType> where ActionType: Action {
     public func dispatch(action: ActionType) {
         dispatchFunction(action)
     }
+    
+    public func dispatch(action thunk: ThunkAction<State>) {
+        dispatchFunction(thunk as Action)
+    }
 }
