@@ -10,11 +10,11 @@ import Foundation
 @dynamicMemberLookup
 public final class StoreSlice<State, ActionType> where ActionType: Action {
     private let state: () -> State
-    private let dispatchFunction: DispatchFunction
+    private let dispatchWithMiddleware: CombinedMiddleware
     
-    init(state: @escaping () -> State, dispatch: @escaping (Action) -> Void) {
-        self.state = state
-        self.dispatchFunction = dispatch
+    init(storeAPI: StoreAPI<State>) {
+        self.state = storeAPI.state
+        self.dispatchWithMiddleware = CombinedMiddleware([createThunkMiddleware()], store: storeAPI)
     }
     
     public subscript<Value>(dynamicMember keyPath: KeyPath<State, Value>) -> Value {
@@ -22,10 +22,10 @@ public final class StoreSlice<State, ActionType> where ActionType: Action {
     }
     
     public func dispatch(action: ActionType) {
-        dispatchFunction(action)
+        dispatchWithMiddleware(action: action)
     }
     
     public func dispatch(action thunk: ThunkAction<State>) {
-        dispatchFunction(thunk as Action)
+        dispatchWithMiddleware(action: thunk as Action)
     }
 }

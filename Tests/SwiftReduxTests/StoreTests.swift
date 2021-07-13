@@ -151,6 +151,25 @@ final class StoreTests: XCTestCase {
         
         XCTAssertEqual(storeSlice.counter, 1)
     }
+    
+    func testThunkActionWithStoreSliceIsExecuted() {
+        let expectation = expectation(description: "should run thunk action in StoreSlice")
+        
+        let thunkAction = ThunkAction<InnerState> { _ in
+            expectation.fulfill()
+        }
+
+        let store = Store(
+            initialState: TestState(counter: 0),
+            reducer: testReducer,
+            middleware: [createThunkMiddleware()]
+        )
+
+        let storeSlice = store.sliceStore(state: \.innerState, actionType: TestAction.self)
+        storeSlice.dispatch(action: thunkAction)
+        
+        waitForExpectations(timeout: 1)
+    }
 }
 
 private let testReducer = Reducer<TestState> { state, action in
