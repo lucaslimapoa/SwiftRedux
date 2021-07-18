@@ -7,12 +7,14 @@
 
 import Foundation
 
-public func createThunkMiddleware<State>() -> Middleware<State> {
-    return Middleware<State> { store, next, action in
-        if let thunk = action as? ThunkAction<State> {
-            thunk(store)
+extension Middleware {
+    public static var thunkMiddleware: Middleware {
+        Middleware<State> { store, next, action in
+            if let thunk = action as? ThunkAction<State> {
+                thunk(store)
+            }
+            
+            next(action)
         }
-        
-        next(action)
     }
 }

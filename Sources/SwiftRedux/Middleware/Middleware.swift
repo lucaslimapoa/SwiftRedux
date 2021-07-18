@@ -23,4 +23,11 @@ public struct Middleware<State> {
     public func callAsFunction(_ store: StoreAPI<State>) -> (@escaping DispatchFunction) -> (Action) -> Void {
         middleware(store)
     }
+    
+    public static func apply(_ middleware: [Middleware<State>], storeAPI: StoreAPI<State>) -> DispatchFunction {
+        middleware.reversed()
+            .reduce({ action in storeAPI.dispatch(action) }) { current, next in
+                next(storeAPI)(current)
+            }
+    }
 }

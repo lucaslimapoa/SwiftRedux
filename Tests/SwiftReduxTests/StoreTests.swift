@@ -58,8 +58,10 @@ final class StoreTests: XCTestCase {
     
     func testStoreRunsMiddlewareInSequence() {
         let expectation = expectation(description: "should run middleware in sequence")
+        expectation.expectedFulfillmentCount =  2
         
         let testMiddleware1 = Middleware<TestState> { store, next, action in
+            expectation.fulfill()
             next(action)
         }
         
@@ -89,7 +91,7 @@ final class StoreTests: XCTestCase {
         let store = Store(
             initialState: TestState(counter: 0),
             reducer: testReducer,
-            middleware: [createThunkMiddleware()]
+            middleware: [.thunkMiddleware]
         )
 
         store.dispatch(action: thunkAction)
@@ -111,7 +113,7 @@ final class StoreTests: XCTestCase {
         let store = Store(
             initialState: TestState(counter: 0),
             reducer: testReducer,
-            middleware: [createThunkMiddleware()]
+            middleware: [.thunkMiddleware]
         )
 
         store.dispatch(action: thunkAction)
@@ -130,9 +132,9 @@ final class StoreTests: XCTestCase {
             reducer: testReducer
         )
         
-        let storeSlice = store.sliceStore(state: \.innerState, actionType: TestAction.self)
+        let scope = store.scope(state: \.innerState)
         
-        XCTAssertEqual(storeSlice.counter, 5)
+        XCTAssertEqual(scope.state.counter, 5)
     }
     
     func testSliceStoreDispatchesActionToStore() {
@@ -146,10 +148,10 @@ final class StoreTests: XCTestCase {
             reducer: testReducer
         )
         
-        let storeSlice = store.sliceStore(state: \.innerState, actionType: TestAction.self)
-        storeSlice.dispatch(action: .increaseInnerCounter)
+        let scope = store.scope(state: \.innerState)
+        scope.dispatch(action: TestAction.increaseInnerCounter)
         
-        XCTAssertEqual(storeSlice.counter, 1)
+        XCTAssertEqual(scope.state.counter, 1)
     }
     
     func testThunkActionWithStoreSliceIsExecuted() {
@@ -162,11 +164,11 @@ final class StoreTests: XCTestCase {
         let store = Store(
             initialState: TestState(counter: 0),
             reducer: testReducer,
-            middleware: [createThunkMiddleware()]
+            middleware: [.thunkMiddleware]
         )
 
-        let storeSlice = store.sliceStore(state: \.innerState, actionType: TestAction.self)
-        storeSlice.dispatch(action: thunkAction)
+        let scope = store.scope(state: \.innerState)
+        scope.dispatch(action: thunkAction)
         
         waitForExpectations(timeout: 1)
     }
