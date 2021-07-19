@@ -10,8 +10,6 @@ import Combine
 import XCTest
 
 final class StoreTests: XCTestCase {
-    var disposeBag = Set<AnyCancellable>()
-    
     func testStoreHasInitialState() {
         let store = Store(initialState: TestState(counter: 1), reducer: testReducer)
         XCTAssertEqual(store.state, TestState(counter: 1))
@@ -24,9 +22,10 @@ final class StoreTests: XCTestCase {
     }
 
     func testStoreSendObjectWillChangeWhenStateChanges() {
+        var disposeBag = Set<AnyCancellable>()
         let expectation = expectation(description: "should trigger objectWillChange event")
         let store = Store(initialState: TestState(counter: 0), reducer: testReducer)
-
+                
         store.objectWillChange.sink {
             expectation.fulfill()
         }
