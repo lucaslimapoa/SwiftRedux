@@ -232,8 +232,8 @@ final class StoreTests: XCTestCase {
         let store = Store(
             initialState: AppState(),
             reducer: Reducer<AppState>
-                .combine(subState: \.subState1, reducer: subState1Reducer)
-                .combine(subState: \.subState2, reducer: subState2Reducer)
+                .apply(reducer: subState1Reducer, for: \.subState1)
+                .apply(reducer: subState2Reducer, for: \.subState2)
         )
         
         store.dispatch(action: SubState1Action.increase)

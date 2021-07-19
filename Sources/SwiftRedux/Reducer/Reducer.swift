@@ -23,16 +23,16 @@ public struct Reducer<State>: ReducerType {
         reduce(&state, action)
     }
     
-    public func combine<InnerState, R>(subState keyPath: WritableKeyPath<State, InnerState>,
-                                       reducer anotherReducer: R) -> Reducer where R: ReducerType, R.State == InnerState {
+    public func apply<InnerState, R>(reducer anotherReducer: R,
+                                     `for` keyPath: WritableKeyPath<State, InnerState>) -> Reducer where R: ReducerType, R.State == InnerState {
         Reducer { [reduce] state, action in
             reduce(&state, action)
             anotherReducer(&state[keyPath: keyPath], action)
         }
     }
     
-    public static func combine<InnerState, R>(subState keyPath: WritableKeyPath<State, InnerState>,
-                                              reducer: R) -> Reducer where R: ReducerType, R.State == InnerState {
+    public static func apply<InnerState, R>(reducer: R,
+                                              `for` keyPath: WritableKeyPath<State, InnerState>) -> Reducer where R: ReducerType, R.State == InnerState {
         Reducer { state, action in
             reducer(&state[keyPath: keyPath], action)
         }
