@@ -242,7 +242,19 @@ final class StoreTests: XCTestCase {
     }
 }
 
+private enum TestAction: Action {
+    case increaseCounter
+    case increaseInnerCounter
+}
 
+private struct InnerState: Equatable {
+    var counter = 0
+}
+
+private struct TestState: Equatable {
+    var counter = 0
+    var innerState = InnerState()
+}
 
 private let testReducer = Reducer<TestState> { state, action in
     switch action as? TestAction {
