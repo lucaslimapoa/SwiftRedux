@@ -188,19 +188,69 @@ final class StoreTests: XCTestCase {
         
         waitForExpectations(timeout: 1)
     }
+    
+    func testCombineReducersUpdatesOnlyStateFromAGivenReducer() {
+        struct AppState: Equatable {
+            var subState1 = SubState1()
+            var subState2 = SubState2()
+        }
+        
+        struct SubState1: Equatable {
+            var counter1 = 0
+        }
+        
+        struct SubState2: Equatable {
+            var counter2 = 0
+        }
+        
+        enum SubState1Action: Action {
+            case increase
+        }
+        
+        enum SubState2Action: Action {
+            case increase
+        }
+        
+        let subState1Reducer = Reducer<SubState1> { state, action in
+            switch action as? SubState1Action {
+            case .increase:
+                state.counter1 += 1
+            case .none:
+                break
+            }
+        }
+        
+        let subState2Reducer = Reducer<SubState2> { state, action in
+            switch action as? SubState2Action {
+            case .increase:
+                state.counter2 += 1
+            case .none:
+                break
+            }
+        }
+        
+        let store = Store(
+            initialState: AppState(),
+            reducer: Reducer<AppState>
+                .combine(subState: \.subState1, reducer: subState1Reducer)
+                .combine(subState: \.subState2, reducer: subState2Reducer)
+        )
+        
+        store.dispatch(action: SubState1Action.increase)
+        
+        XCTAssertEqual(store.state, AppState(subState1: SubState1(counter1: 1)))
+    }
 }
+
+
 
 private let testReducer = Reducer<TestState> { state, action in
     switch action as? TestAction {
     case .increaseCounter:
-        var copyState = state
-        copyState.counter = copyState.counter + 1
-        return copyState
+        state.counter += 1
     case .increaseInnerCounter:
-        var copyState = state
-        copyState.innerState.counter = copyState.innerState.counter + 1
-        return copyState
+        state.innerState.counter += 1
     case .none:
-        return state
+        break
     }
 }

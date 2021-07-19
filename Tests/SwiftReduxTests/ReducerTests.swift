@@ -12,38 +12,12 @@ import XCTest
 final class ReducerTests: XCTestCase {
     func testReducerReturnsUpdatedState() {
         let testReducer = Reducer<TestState> { state, action in
-            TestState(counter: 0)
+            state.counter = 0
         }
         
-        let previousState = TestState(counter: -1)
-        let nextState = testReducer(previousState, TestAction.increaseCounter)
+        var state = TestState(counter: -1)
+        testReducer(&state, TestAction.increaseCounter)
         
-        XCTAssertEqual(nextState, TestState(counter: 0))
+        XCTAssertEqual(state, TestState(counter: 0))
     }
-    
-    func testTypedReducerReturnsUnchangedStateWhenActionNotAccepted() {
-        let testReducer = TypedReducer<TestState, TestAction> { state, action in
-            TestState(counter: 0)
-        }
-        
-        let previousState = TestState(counter: -1)
-        let nextState = testReducer(previousState, UnsupportedAction.increaseCounter)
-        
-        XCTAssertEqual(previousState, nextState)
-    }
-    
-    func testTypedReducerReturnsStateWhenActionAccepted() {
-        let testReducer = TypedReducer<TestState, TestAction> { state, action in
-            TestState(counter: 0)
-        }
-        
-        let previousState = TestState(counter: -1)
-        let nextState = testReducer(previousState, TestAction.increaseCounter)
-        
-        XCTAssertEqual(nextState, TestState(counter: 0))
-    }
-}
-
-enum UnsupportedAction: Action {
-    case increaseCounter
 }

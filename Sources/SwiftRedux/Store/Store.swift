@@ -19,7 +19,7 @@ public final class Store<State>: ObservableObject {
         let getState = { [unowned self] in self.state }
         
         let dispatch = { [unowned self] action in
-            self.state = reducer(self.state, action)
+            reducer(&self.state, action)
         }
         
         self.dispatchWithMiddleware = Middleware.apply(middleware, storeAPI: (getState, dispatch))

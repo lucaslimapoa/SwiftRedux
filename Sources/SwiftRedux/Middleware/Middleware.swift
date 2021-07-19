@@ -7,7 +7,12 @@
 
 import Foundation
 
-public struct Middleware<State> {
+public protocol MiddlewareType {
+    associatedtype State
+    func callAsFunction(_ store: StoreAPI<State>) -> (@escaping DispatchFunction) -> (Action) -> Void
+}
+
+public struct Middleware<State>: MiddlewareType {
     private let middleware: (StoreAPI<State>) -> (@escaping DispatchFunction) -> (Action) -> Void
     
     public init(_ middlewareFunction: @escaping (StoreAPI<State>, DispatchFunction, Action) -> Void) {
