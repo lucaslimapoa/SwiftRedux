@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct CombineReducers<State>: ReducerType {
+public struct CombinedReducer<State>: ReducerType {
     private let reduce: (_ state: inout State, _ action: Action) -> Void
     
     init<R>(_ reduce: R) where R: ReducerType, R.State == State {
@@ -26,8 +26,8 @@ public struct CombineReducers<State>: ReducerType {
     }
     
     public func apply<InnerState, R>(reducer anotherReducer: R,
-                                     `for` keyPath: WritableKeyPath<State, InnerState>) -> CombineReducers<State> where R: ReducerType, R.State == InnerState {
-        CombineReducers<State> { [reduce] state, action in
+                                     `for` keyPath: WritableKeyPath<State, InnerState>) -> CombinedReducer<State> where R: ReducerType, R.State == InnerState {
+        CombinedReducer<State> { [reduce] state, action in
             reduce(&state, action)
             if let action = action as? R.ActionType {
                 anotherReducer(&state[keyPath: keyPath], action)
@@ -36,8 +36,8 @@ public struct CombineReducers<State>: ReducerType {
     }
     
     public static func apply<InnerState, R>(reducer: R,
-                                            `for` keyPath: WritableKeyPath<State, InnerState>) -> CombineReducers<State> where R: ReducerType, R.State == InnerState {
-        CombineReducers<State> { state, action in
+                                            `for` keyPath: WritableKeyPath<State, InnerState>) -> CombinedReducer<State> where R: ReducerType, R.State == InnerState {
+        CombinedReducer<State> { state, action in
             guard let action = action as? R.ActionType else { return }
             reducer(&state[keyPath: keyPath], action)
         }
