@@ -226,7 +226,7 @@ final class StoreTests: XCTestCase {
         
         let store = Store(
             initialState: AppState(),
-            reducer: AnyReducer<AppState>
+            reducer: CombineReducers<AppState>
                 .apply(reducer: subState1Reducer, for: \.subState1)
                 .apply(reducer: subState2Reducer, for: \.subState2)
         )

@@ -26,7 +26,7 @@ public final class Store<State>: ObservableObject {
         self.dispatchWithMiddleware = Middleware.apply(middleware, storeAPI: (getState, dispatch))
     }
     
-    public init(initialState: State, reducer: AnyReducer<State>, middleware: [Middleware<State>] = []) {
+    public init(initialState: State, reducer: CombineReducers<State>, middleware: [Middleware<State>] = []) {
         self.state = initialState
         
         let getState = { [unowned self] in self.state }

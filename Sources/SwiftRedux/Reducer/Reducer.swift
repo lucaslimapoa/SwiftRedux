@@ -23,8 +23,4 @@ public struct Reducer<State, ActionType>: ReducerType where ActionType: Action {
     public func callAsFunction(_ state: inout State, _ action: ActionType) {
         reduce(&state, action)
     }
-    
-    public func eraseToAnyReducer() -> AnyReducer<State> {
-        AnyReducer(self)
-    }
 }
