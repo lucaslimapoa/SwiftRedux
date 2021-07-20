@@ -13,12 +13,25 @@ public final class Store<State>: ObservableObject {
     private var dispatchWithMiddleware: DispatchFunction!
     private var cancellables = Set<AnyCancellable>()
     
-    public init(initialState: State, reducer: Reducer<State>, middleware: [Middleware<State>] = []) {
+    public init<T>(initialState: State, reducer: Reducer<State, T>, middleware: [Middleware<State>] = []) {
         self.state = initialState
         
         let getState = { [unowned self] in self.state }
         
-        let dispatch = { [unowned self] action in
+        let dispatch: DispatchFunction = { [unowned self] action in
+            guard let action = action as? T else { return }
+            reducer(&self.state, action)
+        }
+        
+        self.dispatchWithMiddleware = Middleware.apply(middleware, storeAPI: (getState, dispatch))
+    }
+    
+    public init(initialState: State, reducer: AnyReducer<State>, middleware: [Middleware<State>] = []) {
+        self.state = initialState
+        
+        let getState = { [unowned self] in self.state }
+        
+        let dispatch: DispatchFunction = { [unowned self] action in
             reducer(&self.state, action)
         }
         

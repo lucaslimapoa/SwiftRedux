@@ -210,27 +210,23 @@ final class StoreTests: XCTestCase {
             case increase
         }
         
-        let subState1Reducer = Reducer<SubState1> { state, action in
-            switch action as? SubState1Action {
+        let subState1Reducer = Reducer<SubState1, SubState1Action> { state, action in
+            switch action {
             case .increase:
                 state.counter1 += 1
-            case .none:
-                break
             }
         }
         
-        let subState2Reducer = Reducer<SubState2> { state, action in
-            switch action as? SubState2Action {
+        let subState2Reducer = Reducer<SubState2, SubState2Action> { state, action in
+            switch action {
             case .increase:
                 state.counter2 += 1
-            case .none:
-                break
             }
         }
         
         let store = Store(
             initialState: AppState(),
-            reducer: Reducer<AppState>
+            reducer: AnyReducer<AppState>
                 .apply(reducer: subState1Reducer, for: \.subState1)
                 .apply(reducer: subState2Reducer, for: \.subState2)
         )
@@ -255,13 +251,11 @@ private struct TestState: Equatable {
     var innerState = InnerState()
 }
 
-private let testReducer = Reducer<TestState> { state, action in
-    switch action as? TestAction {
+private let testReducer = Reducer<TestState, TestAction> { state, action in
+    switch action {
     case .increaseCounter:
         state.counter += 1
     case .increaseInnerCounter:
         state.innerState.counter += 1
-    case .none:
-        break
     }
 }

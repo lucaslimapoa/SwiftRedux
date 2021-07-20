@@ -9,32 +9,22 @@ import Foundation
 
 public protocol ReducerType {
     associatedtype State
-    func callAsFunction(_ state: inout State, _ action: Action)
+    associatedtype ActionType
+    func callAsFunction(_ state: inout State, _ action: ActionType)
 }
 
-public struct Reducer<State>: ReducerType {    
-    private let reduce: ReducerFunction<State>
+public struct Reducer<State, ActionType>: ReducerType where ActionType: Action {
+    private let reduce: (_ state: inout State, _ action: ActionType) -> Void
     
-    public init(_ reduce: @escaping ReducerFunction<State>) {
+    public init(_ reduce: @escaping (_ state: inout State, _ action: ActionType) -> Void) {
         self.reduce = reduce
     }
     
-    public func callAsFunction(_ state: inout State, _ action: Action) {
+    public func callAsFunction(_ state: inout State, _ action: ActionType) {
         reduce(&state, action)
     }
     
-    public func apply<InnerState, R>(reducer anotherReducer: R,
-                                     `for` keyPath: WritableKeyPath<State, InnerState>) -> Reducer where R: ReducerType, R.State == InnerState {
-        Reducer { [reduce] state, action in
-            reduce(&state, action)
-            anotherReducer(&state[keyPath: keyPath], action)
-        }
-    }
-    
-    public static func apply<InnerState, R>(reducer: R,
-                                              `for` keyPath: WritableKeyPath<State, InnerState>) -> Reducer where R: ReducerType, R.State == InnerState {
-        Reducer { state, action in
-            reducer(&state[keyPath: keyPath], action)
-        }
+    public func eraseToAnyReducer() -> AnyReducer<State> {
+        AnyReducer(self)
     }
 }
