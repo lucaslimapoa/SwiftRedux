@@ -7,7 +7,7 @@
 
 import Combine
 
-public struct ThunkActionPublisher<RootState> {
+public struct ThunkPublisher<RootState> {
     private let thunk: (StoreAPI<RootState>) -> AnyPublisher<Action, Never>
     
     public init(_ thunk: @escaping (StoreAPI<RootState>) -> AnyPublisher<Action, Never>) {
@@ -26,7 +26,7 @@ public struct ThunkActionPublisher<RootState> {
 struct AnyThunkActionPublisher<State>: Action {
     private let thunk: (StoreAPI<State>) -> AnyPublisher<Action, Never>
     
-    init(_ thunk: ThunkActionPublisher<State>) {
+    init(_ thunk: ThunkPublisher<State>) {
         self.thunk = thunk.callAsFunction(_:)
     }
     

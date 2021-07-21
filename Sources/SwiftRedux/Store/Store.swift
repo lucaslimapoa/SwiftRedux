@@ -50,12 +50,12 @@ public final class Store<RootState>: ObservableObject {
         dispatchWithMiddleware(action)
     }
     
-    public func dispatch(action thunk: ThunkAction<RootState>) {
+    public func dispatch(action thunk: Thunk<RootState>) {
         dispatchWithMiddleware(thunk.eraseToAnyThunkAction())
     }
     
-    public func dispatch(action thunk: ThunkActionPublisher<RootState>) {
-        dispatchWithMiddleware(thunk.AnyThunkActionPublisher())
+    public func dispatch(action thunk: ThunkPublisher<RootState>) {
+        dispatchWithMiddleware(thunk.eraseToAnyThunkActionPublisher())
     }
     
     public func scope<InnerState>(state keyPath: KeyPath<RootState, InnerState>) -> Store<InnerState> {

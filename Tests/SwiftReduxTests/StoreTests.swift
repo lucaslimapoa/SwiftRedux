@@ -83,7 +83,7 @@ final class StoreTests: XCTestCase {
     func testStoreCanDispatchThunkAction() {
         let expectation = expectation(description: "store can dispatch thunk")
                 
-        let thunkAction = ThunkAction<TestState> { store in
+        let thunk = Thunk<TestState> { store in
             expectation.fulfill()
         }
 
@@ -92,7 +92,7 @@ final class StoreTests: XCTestCase {
             reducer: testReducer
         )
 
-        store.dispatch(action: thunkAction)
+        store.dispatch(action: thunk)
         
         waitForExpectations(timeout: 1)
     }
@@ -133,7 +133,7 @@ final class StoreTests: XCTestCase {
     func testThunkActionWithStoreSliceIsExecuted() {
         let expectation = expectation(description: "should run thunk action in Store")
         
-        let thunkAction = ThunkAction<InnerState> { _ in
+        let thunk = Thunk<InnerState> { _ in
             expectation.fulfill()
         }
 
@@ -143,13 +143,13 @@ final class StoreTests: XCTestCase {
         )
 
         let scope = store.scope(state: \.innerState)
-        scope.dispatch(action: thunkAction)
+        scope.dispatch(action: thunk)
         
         waitForExpectations(timeout: 1)
     }
     
     func testThunkActionPublisherIsExecuted() {
-        let thunkPublisher = ThunkActionPublisher<TestState> { store in
+        let thunkPublisher = ThunkPublisher<TestState> { store in
             Just(TestAction.increaseCounter)
                 .eraseToAnyPublisher()
         }
@@ -167,7 +167,7 @@ final class StoreTests: XCTestCase {
     func testThunkActionPublisherWithStoreSliceIsExecuted() {
         let expectation = expectation(description: "should run thunk action publisher in Store")
         
-        let thunkAction = ThunkActionPublisher<InnerState> { _ in
+        let thunkPublisher = ThunkPublisher<InnerState> { _ in
             expectation.fulfill()
             return Empty<Action, Never>(completeImmediately: true)
                 .eraseToAnyPublisher()
@@ -179,7 +179,7 @@ final class StoreTests: XCTestCase {
         )
 
         let scope = store.scope(state: \.innerState)
-        scope.dispatch(action: thunkAction)
+        scope.dispatch(action: thunkPublisher)
         
         waitForExpectations(timeout: 1)
     }

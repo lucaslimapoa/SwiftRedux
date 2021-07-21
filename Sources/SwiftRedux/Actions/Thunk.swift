@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ThunkAction<RootState> {
+public struct Thunk<RootState> {
     private let thunk: (StoreAPI<RootState>) -> Void
     
     public init(_ thunk: @escaping (StoreAPI<RootState>) -> Void) {
@@ -26,7 +26,7 @@ public struct ThunkAction<RootState> {
 struct AnyThunkAction<State>: Action {
     private let thunk: (StoreAPI<State>) -> Void
     
-    init(_ thunk: ThunkAction<State>) {
+    init(_ thunk: Thunk<State>) {
         self.thunk = thunk.callAsFunction(_:)
     }
     
