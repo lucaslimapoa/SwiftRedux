@@ -8,12 +8,12 @@
 import Foundation
 import Combine
 
-public final class Store<State>: ObservableObject {
-    @Published public private(set) var state: State
+public final class Store<RootState>: ObservableObject {
+    @Published public private(set) var state: RootState
     private var dispatchWithMiddleware: DispatchFunction!
     private var cancellables = Set<AnyCancellable>()
     
-    public init<T>(initialState: State, reducer: Reducer<State, T>, middleware: [Middleware<State>] = []) {
+    public init<T>(initialState: RootState, reducer: Reducer<RootState, T>, middleware: [Middleware<RootState>] = []) {
         self.state = initialState
         
         let getState = { [unowned self] in self.state }
@@ -26,7 +26,7 @@ public final class Store<State>: ObservableObject {
         self.dispatchWithMiddleware = Middleware.apply(middleware, storeAPI: (getState, dispatch))
     }
     
-    public init(initialState: State, reducer: CombinedReducer<State>, middleware: [Middleware<State>] = []) {
+    public init(initialState: RootState, reducer: CombinedReducer<RootState>, middleware: [Middleware<RootState>] = []) {
         self.state = initialState
         
         let getState = { [unowned self] in self.state }
@@ -38,7 +38,7 @@ public final class Store<State>: ObservableObject {
         self.dispatchWithMiddleware = Middleware.apply(middleware, storeAPI: (getState, dispatch))
     }
     
-    private init(initialState: State, dispatchWithMiddleware: @escaping DispatchFunction) {
+    private init(initialState: RootState, dispatchWithMiddleware: @escaping DispatchFunction) {
         self.state = initialState
         self.dispatchWithMiddleware = dispatchWithMiddleware
     }
@@ -47,7 +47,15 @@ public final class Store<State>: ObservableObject {
         dispatchWithMiddleware(action)
     }
     
-    public func scope<InnerState>(state keyPath: KeyPath<State, InnerState>) -> Store<InnerState> {
+    public func dispatch(action thunk: ThunkAction<RootState>) {
+        dispatchWithMiddleware(thunk.eraseToAnyThunkAction())
+    }
+    
+    public func dispatch(action thunk: ThunkActionPublisher<RootState>) {
+        dispatchWithMiddleware(thunk.eraseToAnyThunkAction())
+    }
+    
+    public func scope<InnerState>(state keyPath: KeyPath<RootState, InnerState>) -> Store<InnerState> {
         let scopeStore = Store<InnerState>(
             initialState: state[keyPath: keyPath],
             dispatchWithMiddleware: Middleware<InnerState>.apply(

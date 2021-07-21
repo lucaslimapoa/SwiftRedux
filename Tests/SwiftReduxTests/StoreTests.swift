@@ -235,6 +235,24 @@ final class StoreTests: XCTestCase {
         
         XCTAssertEqual(store.state, AppState(subState1: SubState1(counter1: 1)))
     }
+    
+    func testThunkActionWithDifferentStateIsExecuted() {
+        let expectation = expectation(description: "should run thunk action in Store")
+        
+        let thunkAction = ThunkAction<TestState> { _ in
+            expectation.fulfill()
+        }
+
+        let store = Store(
+            initialState: TestState(counter: 0),
+            reducer: testReducer,
+            middleware: [.thunkMiddleware]
+        )
+
+        store.dispatch(action: thunkAction)
+        
+        waitForExpectations(timeout: 1)
+    }
 }
 
 private enum TestAction: Action {
