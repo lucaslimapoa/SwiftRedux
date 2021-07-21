@@ -18,7 +18,7 @@ public struct ThunkActionPublisher<RootState> {
         thunk(store)
     }
     
-    func eraseToAnyThunkAction() -> AnyThunkActionPublisher<RootState> {
+    func eraseToAnyThunkActionPublisher() -> AnyThunkActionPublisher<RootState> {
         AnyThunkActionPublisher(self)
     }
 }

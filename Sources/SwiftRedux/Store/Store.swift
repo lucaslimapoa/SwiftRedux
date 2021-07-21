@@ -22,8 +22,11 @@ public final class Store<RootState>: ObservableObject {
             guard let action = action as? T else { return }
             reducer(&self.state, action)
         }
-        
-        self.dispatchWithMiddleware = Middleware.apply(middleware, storeAPI: (getState, dispatch))
+
+        self.dispatchWithMiddleware = Middleware.apply(
+            middleware + [.thunkMiddleware],
+            storeAPI: (getState, dispatch)
+        )
     }
     
     public init(initialState: RootState, reducer: CombinedReducer<RootState>, middleware: [Middleware<RootState>] = []) {
@@ -52,7 +55,7 @@ public final class Store<RootState>: ObservableObject {
     }
     
     public func dispatch(action thunk: ThunkActionPublisher<RootState>) {
-        dispatchWithMiddleware(thunk.eraseToAnyThunkAction())
+        dispatchWithMiddleware(thunk.AnyThunkActionPublisher())
     }
     
     public func scope<InnerState>(state keyPath: KeyPath<RootState, InnerState>) -> Store<InnerState> {
