@@ -38,7 +38,10 @@ public final class Store<RootState>: ObservableObject {
             reducer(&self.state, action)
         }
         
-        self.dispatchWithMiddleware = Middleware.apply(middleware, storeAPI: (getState, dispatch))
+        self.dispatchWithMiddleware = Middleware.apply(
+            middleware + [.thunkMiddleware],
+            storeAPI: (getState, dispatch)
+        )
     }
     
     private init(initialState: RootState, dispatchWithMiddleware: @escaping DispatchFunction) {
