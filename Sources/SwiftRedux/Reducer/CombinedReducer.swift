@@ -17,7 +17,7 @@ public struct CombinedReducer<State>: Reducer {
     public static func apply<InnerState, R>(reducer: R,
                                             `for` keyPath: WritableKeyPath<State, InnerState>) -> CombinedReducer<State> where R: Reducer, R.State == InnerState {
         CombinedReducer<State> { state, action in
-            reducer.tryReduce(state: &state[keyPath: keyPath], action: action)
+            reducer.reduceAny(state: &state[keyPath: keyPath], action: action)
         }
     }
     
@@ -25,7 +25,7 @@ public struct CombinedReducer<State>: Reducer {
                                      `for` keyPath: WritableKeyPath<State, InnerState>) -> CombinedReducer<State> where R: Reducer, R.State == InnerState {
         CombinedReducer<State> { [reduce] state, action in
             reduce(&state, action)
-            anotherReducer.tryReduce(state: &state[keyPath: keyPath], action: action)
+            anotherReducer.reduceAny(state: &state[keyPath: keyPath], action: action)
         }
     }
 }

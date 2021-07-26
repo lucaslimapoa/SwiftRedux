@@ -23,7 +23,7 @@ public final class Store<State>: ObservableObject, Storable {
         
         self.dispatchWithMiddleware = { action in
             middleware.run(store: storeProxy, action: action)
-            reducer.tryReduce(state: &self.state, action: action)
+            reducer.reduceAny(state: &self.state, action: action)
         }
     }
     
