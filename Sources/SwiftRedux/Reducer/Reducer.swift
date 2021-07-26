@@ -7,20 +7,16 @@
 
 import Foundation
 
-public protocol ReducerType {
+public protocol Reducer {
     associatedtype State
     associatedtype ActionType
-    func callAsFunction(_ state: inout State, _ action: ActionType)
+    
+    func reduce(state: inout State, action: ActionType)
 }
 
-public struct Reducer<State, ActionType>: ReducerType where ActionType: Action {
-    private let reduce: (_ state: inout State, _ action: ActionType) -> Void
-    
-    public init(_ reduce: @escaping (_ state: inout State, _ action: ActionType) -> Void) {
-        self.reduce = reduce
-    }
-    
-    public func callAsFunction(_ state: inout State, _ action: ActionType) {
-        reduce(&state, action)
+extension Reducer {
+    func tryReduce(state: inout State, action: Action) {
+        guard let action = action as? ActionType else { return }
+        reduce(state: &state, action: action)
     }
 }

@@ -11,12 +11,18 @@ import XCTest
 
 final class StoreTests: XCTestCase {
     func testStoreHasInitialState() {
-        let store = Store(initialState: TestState(counter: 1), reducer: testReducer)
+        let store = Store(
+            initialState: TestState(counter: 1),
+            reducer: TestReducer()
+        )
         XCTAssertEqual(store.state, TestState(counter: 1))
     }
 
     func testStoreHasUpdatedStateWhenActionIsDispatched() {
-        let store = Store(initialState: TestState(counter: 0), reducer: testReducer)
+        let store = Store(
+            initialState: TestState(counter: 0),
+            reducer: TestReducer()
+        )
         store.dispatch(action: TestAction.increaseCounter)
         XCTAssertEqual(store.state, TestState(counter: 1))
     }
@@ -24,212 +30,227 @@ final class StoreTests: XCTestCase {
     func testStoreSendObjectWillChangeWhenStateChanges() {
         var disposeBag = Set<AnyCancellable>()
         let expectation = expectation(description: "should trigger objectWillChange event")
-        let store = Store(initialState: TestState(counter: 0), reducer: testReducer)
-                
+        let store = Store(
+            initialState: TestState(counter: 0),
+            reducer: TestReducer()
+        )
+
         store.objectWillChange.sink {
             expectation.fulfill()
         }
         .store(in: &disposeBag)
 
         store.dispatch(action: TestAction.increaseCounter)
-        
+
         waitForExpectations(timeout: 1)
     }
-    
+
     func testStoreRunsMiddlewareInDispatch() {
         let expectation = expectation(description: "should run middleware in dispatch")
-        
-        let testMiddleware = Middleware<TestState> { store, next, action in
-            expectation.fulfill()
-            next(action)
+
+        struct TestMiddleware: Middleware {
+            let expectation: XCTestExpectation
+            
+            func run(store: StoreProxy<TestState>, action: Action) {
+                expectation.fulfill()
+            }
         }
-        
+
         let store = Store(
             initialState: TestState(counter: 0),
-            reducer: testReducer,
-            middleware: [testMiddleware]
+            reducer: TestReducer(),
+            middleware: TestMiddleware(expectation: expectation)
         )
-        
+
         store.dispatch(action: TestAction.increaseCounter)
-        
+
         waitForExpectations(timeout: 1)
     }
-    
-    func testStoreRunsMiddlewareInSequence() {
+
+    func testStoreRunsCombinedMiddleware() {
         let expectation = expectation(description: "should run middleware in sequence")
-        expectation.expectedFulfillmentCount =  2
-        
-        let testMiddleware1 = Middleware<TestState> { store, next, action in
-            expectation.fulfill()
-            next(action)
+        expectation.expectedFulfillmentCount = 2
+
+        struct TestMiddleware1: Middleware {
+            let expectation: XCTestExpectation
+            func run(store: StoreProxy<TestState>, action: Action) {
+                expectation.fulfill()
+            }
         }
-        
-        let testMiddleware2 = Middleware<TestState> { store, next, action in
-            expectation.fulfill()
-            next(action)
+
+        struct TestMiddleware2: Middleware {
+            let expectation: XCTestExpectation
+            func run(store: StoreProxy<TestState>, action: Action) {
+                expectation.fulfill()
+            }
         }
         
         let store = Store(
             initialState: TestState(counter: 0),
-            reducer: testReducer,
-            middleware: [testMiddleware1, testMiddleware2]
+            reducer: TestReducer(),
+            middleware: CombinedMiddleware
+                .apply(TestMiddleware1(expectation: expectation))
+                .apply(TestMiddleware2(expectation: expectation))
         )
-        
+
         store.dispatch(action: TestAction.increaseCounter)
-        
-        waitForExpectations(timeout: 1)
-    }
-    
-    func testStoreCanDispatchThunkAction() {
-        let expectation = expectation(description: "store can dispatch thunk")
-                
-        let thunk = Thunk<TestState> { store in
-            expectation.fulfill()
-        }
 
-        let store = Store(
-            initialState: TestState(counter: 0),
-            reducer: testReducer
-        )
-
-        store.dispatch(action: thunk)
-        
         waitForExpectations(timeout: 1)
     }
     
     func testSliceStoreReturnsStoreSliceWithCurrentState() {
         let store = Store(
             initialState: TestState(
-                counter: 0,
                 innerState: InnerState(
                     counter: 5
                 )
             ),
-            reducer: testReducer
+            reducer: TestReducer()
         )
-        
+
         let scope = store.scope(state: \.innerState)
-        
+
         XCTAssertEqual(scope.state.counter, 5)
     }
     
     func testSliceStoreDispatchesActionToStore() {
         let store = Store(
             initialState: TestState(
-                counter: 0,
                 innerState: InnerState(
                     counter: 0
                 )
             ),
-            reducer: testReducer
+            reducer: TestReducer()
         )
-        
+
         let scope = store.scope(state: \.innerState)
         scope.dispatch(action: TestAction.increaseInnerCounter)
-        
+
         XCTAssertEqual(scope.state.counter, 1)
     }
-    
-    func testThunkActionWithStoreSliceIsExecuted() {
-        let expectation = expectation(description: "should run thunk action in Store")
-        
-        let thunk = Thunk<InnerState> { _ in
-            expectation.fulfill()
-        }
 
-        let store = Store(
-            initialState: TestState(counter: 0),
-            reducer: testReducer
-        )
-
-        let scope = store.scope(state: \.innerState)
-        scope.dispatch(action: thunk)
-        
-        waitForExpectations(timeout: 1)
-    }
-    
-    func testThunkActionPublisherIsExecuted() {
-        let thunkPublisher = ThunkPublisher<TestState> { store in
-            Just(TestAction.increaseCounter)
-                .eraseToAnyPublisher()
-        }
-        
-        let store = Store(
-            initialState: TestState(counter: 0),
-            reducer: testReducer
-        )
-        
-        store.dispatch(action: thunkPublisher)
-        
-        XCTAssertEqual(store.state, TestState(counter: 1))
-    }
-    
-    func testThunkActionPublisherWithStoreSliceIsExecuted() {
-        let expectation = expectation(description: "should run thunk action publisher in Store")
-        
-        let thunkPublisher = ThunkPublisher<InnerState> { _ in
-            expectation.fulfill()
-            return Empty<Action, Never>(completeImmediately: true)
-                .eraseToAnyPublisher()
-        }
-
-        let store = Store(
-            initialState: TestState(counter: 0),
-            reducer: testReducer
-        )
-
-        let scope = store.scope(state: \.innerState)
-        scope.dispatch(action: thunkPublisher)
-        
-        waitForExpectations(timeout: 1)
-    }
-    
+//    func testStoreCanDispatchThunkAction() {
+//        let expectation = expectation(description: "store can dispatch thunk")
+//
+//        let thunk = Thunk<TestState> { store in
+//            expectation.fulfill()
+//        }
+//
+//        let store = Store(
+//            initialState: TestState(counter: 0),
+//            reducer: testReducer
+//        )
+//
+//        store.dispatch(action: thunk)
+//
+//        waitForExpectations(timeout: 1)
+//    }
+//
+//    func testThunkActionWithStoreSliceIsExecuted() {
+//        let expectation = expectation(description: "should run thunk action in Store")
+//
+//        let thunk = Thunk<InnerState> { _ in
+//            expectation.fulfill()
+//        }
+//
+//        let store = Store(
+//            initialState: TestState(counter: 0),
+//            reducer: testReducer
+//        )
+//
+//        let scope = store.scope(state: \.innerState)
+//        scope.dispatch(action: thunk)
+//
+//        waitForExpectations(timeout: 1)
+//    }
+//
+//    func testThunkActionPublisherIsExecuted() {
+//        let thunkPublisher = ThunkPublisher<TestState> { store in
+//            Just(TestAction.increaseCounter)
+//                .eraseToAnyPublisher()
+//        }
+//
+//        let store = Store(
+//            initialState: TestState(counter: 0),
+//            reducer: testReducer
+//        )
+//
+//        store.dispatch(action: thunkPublisher)
+//
+//        XCTAssertEqual(store.state, TestState(counter: 1))
+//    }
+//
+//    func testThunkActionPublisherWithStoreSliceIsExecuted() {
+//        let expectation = expectation(description: "should run thunk action publisher in Store")
+//
+//        let thunkPublisher = ThunkPublisher<InnerState> { _ in
+//            expectation.fulfill()
+//            return Empty<Action, Never>(completeImmediately: true)
+//                .eraseToAnyPublisher()
+//        }
+//
+//        let store = Store(
+//            initialState: TestState(counter: 0),
+//            reducer: testReducer
+//        )
+//
+//        let scope = store.scope(state: \.innerState)
+//        scope.dispatch(action: thunkPublisher)
+//
+//        waitForExpectations(timeout: 1)
+//    }
+//
     func testCombineReducersUpdatesOnlyStateFromAGivenReducer() {
         struct AppState: Equatable {
             var subState1 = SubState1()
             var subState2 = SubState2()
         }
-        
+
         struct SubState1: Equatable {
             var counter1 = 0
         }
-        
+
         struct SubState2: Equatable {
             var counter2 = 0
         }
-        
+
         enum SubState1Action: Action {
             case increase
         }
-        
+
         enum SubState2Action: Action {
             case increase
         }
-        
-        let subState1Reducer = Reducer<SubState1, SubState1Action> { state, action in
-            switch action {
-            case .increase:
+
+        struct SubState1Reducer: Reducer {
+            func reduce(state: inout SubState1, action: SubState1Action) {
                 state.counter1 += 1
             }
         }
         
-        let subState2Reducer = Reducer<SubState2, SubState2Action> { state, action in
-            switch action {
-            case .increase:
+        struct SubState2Reducer: Reducer {
+            func reduce(state: inout SubState2, action: SubState2Action) {
                 state.counter2 += 1
             }
         }
         
         let store = Store(
             initialState: AppState(),
-            reducer: CombinedReducer<AppState>
-                .apply(reducer: subState1Reducer, for: \.subState1)
-                .apply(reducer: subState2Reducer, for: \.subState2)
+            reducer: CombinedReducer
+                .apply(reducer: SubState1Reducer(), for: \.subState1)
+                .apply(reducer: SubState2Reducer(), for: \.subState2)
         )
-        
+
         store.dispatch(action: SubState1Action.increase)
-        
-        XCTAssertEqual(store.state, AppState(subState1: SubState1(counter1: 1)))
+        store.dispatch(action: SubState2Action.increase)
+
+        XCTAssertEqual(
+            store.state,
+            AppState(
+                subState1: SubState1(counter1: 1),
+                subState2: SubState2(counter2: 1)
+            )
+        )
     }
 }
 
@@ -247,11 +268,13 @@ private struct TestState: Equatable {
     var innerState = InnerState()
 }
 
-private let testReducer = Reducer<TestState, TestAction> { state, action in
-    switch action {
-    case .increaseCounter:
-        state.counter += 1
-    case .increaseInnerCounter:
-        state.innerState.counter += 1
+private struct TestReducer: Reducer {
+    func reduce(state: inout TestState, action: TestAction) {
+        switch action {
+        case .increaseCounter:
+            state.counter += 1
+        case .increaseInnerCounter:
+            state.innerState.counter += 1
+        }
     }
 }

@@ -8,43 +8,29 @@
 import Foundation
 import Combine
 
-public final class Store<RootState>: ObservableObject {
-    @Published public private(set) var state: RootState
+public final class Store<State>: ObservableObject, Storable {
+    typealias DispatchFunction = (Action) -> Void
+    
+    @Published public private(set) var state: State
     private var dispatchWithMiddleware: DispatchFunction!
     private var cancellables = Set<AnyCancellable>()
-    
-    public init<T>(initialState: RootState, reducer: Reducer<RootState, T>, middleware: [Middleware<RootState>] = []) {
-        self.state = initialState
-        
-        let getState = { [unowned self] in self.state }
-        
-        let dispatch: DispatchFunction = { [unowned self] action in
-            guard let action = action as? T else { return }
-            reducer(&self.state, action)
-        }
 
-        self.dispatchWithMiddleware = Middleware.apply(
-            middleware + [.thunkMiddleware],
-            storeAPI: (getState, dispatch)
-        )
+    public convenience init<R>(initialState: State, reducer: R) where R: Reducer, R.State == State {
+        self.init(initialState: initialState, reducer: reducer, middleware: NoOpMiddleware())
     }
     
-    public init(initialState: RootState, reducer: CombinedReducer<RootState>, middleware: [Middleware<RootState>] = []) {
+    public init<R, M>(initialState: State, reducer: R, middleware: M) where R: Reducer, R.State == State, M: Middleware, M.State == State {
         self.state = initialState
         
-        let getState = { [unowned self] in self.state }
+        let storeProxy = StoreProxy(store: self)
         
-        let dispatch: DispatchFunction = { [unowned self] action in
-            reducer(&self.state, action)
+        self.dispatchWithMiddleware = { action in
+            middleware.run(store: storeProxy, action: action)
+            reducer.tryReduce(state: &self.state, action: action)
         }
-        
-        self.dispatchWithMiddleware = Middleware.apply(
-            middleware + [.thunkMiddleware],
-            storeAPI: (getState, dispatch)
-        )
     }
     
-    private init(initialState: RootState, dispatchWithMiddleware: @escaping DispatchFunction) {
+    private init(initialState: State, dispatchWithMiddleware: @escaping DispatchFunction) {
         self.state = initialState
         self.dispatchWithMiddleware = dispatchWithMiddleware
     }
@@ -53,31 +39,25 @@ public final class Store<RootState>: ObservableObject {
         dispatchWithMiddleware(action)
     }
     
-    public func dispatch(action thunk: Thunk<RootState>) {
-        dispatchWithMiddleware(thunk.eraseToAnyThunkAction())
-    }
+//    public func dispatch(action thunk: Thunk<State>) {
+//        dispatchWithMiddleware(thunk.eraseToAnyThunkAction())
+//    }
+//
+//    public func dispatch(action thunk: ThunkPublisher<State>) {
+//        dispatchWithMiddleware(thunk.eraseToAnyThunkActionPublisher())
+//    }
     
-    public func dispatch(action thunk: ThunkPublisher<RootState>) {
-        dispatchWithMiddleware(thunk.eraseToAnyThunkActionPublisher())
-    }
-    
-    public func scope<InnerState>(state keyPath: KeyPath<RootState, InnerState>) -> Store<InnerState> {
+    public func scope<InnerState>(state keyPath: KeyPath<State, InnerState>) -> Store<InnerState> {
         let scopeStore = Store<InnerState>(
             initialState: state[keyPath: keyPath],
-            dispatchWithMiddleware: Middleware<InnerState>.apply(
-                [.thunkMiddleware],
-                storeAPI: (
-                    { self.state[keyPath: keyPath] },
-                    dispatchWithMiddleware
-                )
-            )
+            dispatchWithMiddleware: dispatchWithMiddleware
         )
-        
+
         $state
             .map(keyPath)
             .assign(to: \.state, on: scopeStore)
             .store(in: &cancellables)
-        
+
         return scopeStore
     }
 }

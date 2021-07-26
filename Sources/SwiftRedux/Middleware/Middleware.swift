@@ -7,32 +7,26 @@
 
 import Foundation
 
-public protocol MiddlewareType {
+public protocol Middleware {
     associatedtype State
-    func callAsFunction(_ store: StoreAPI<State>) -> (@escaping DispatchFunction) -> (Action) -> Void
+    func run(store: StoreProxy<State>, action: Action)
 }
 
-public struct Middleware<State>: MiddlewareType {
-    private let middleware: (StoreAPI<State>) -> (@escaping DispatchFunction) -> (Action) -> Void
+public struct CombinedMiddleware<State>: Middleware {
+    private let runClosure: (_ store: StoreProxy<State>, _ action: Action) -> Void
     
-    public init(_ middlewareFunction: @escaping (StoreAPI<State>, DispatchFunction, Action) -> Void) {
-        self.middleware = { store in
-            return { next in
-                return { action in
-                    return middlewareFunction(store, next, action)
-                }
-            }
+    public static func apply<M>(_ middleware: M) -> CombinedMiddleware<State> where M: Middleware, M.State == State {
+        CombinedMiddleware(runClosure: middleware.run(store:action:))
+    }
+
+    public func apply<M>(_ anotherMiddleware: M) -> CombinedMiddleware<State> where M: Middleware, M.State == State {
+        CombinedMiddleware { store, action in
+            runClosure(store, action)
+            anotherMiddleware.run(store: store, action: action)
         }
     }
-    
-    public func callAsFunction(_ store: StoreAPI<State>) -> (@escaping DispatchFunction) -> (Action) -> Void {
-        middleware(store)
-    }
-    
-    public static func apply(_ middleware: [Middleware<State>], storeAPI: StoreAPI<State>) -> DispatchFunction {
-        middleware.reversed()
-            .reduce({ action in storeAPI.dispatch(action) }) { current, next in
-                next(storeAPI)(current)
-            }
+
+    public func run(store: StoreProxy<State>, action: Action) {
+        runClosure(store, action)
     }
 }
