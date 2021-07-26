@@ -11,6 +11,8 @@ import Combine
 public final class ThunkMiddleware<State>: Middleware {
     private var cancellables = Set<AnyCancellable>()
     
+    public init() { }
+    
     public func run(store: StoreProxy<State>, action: AnyAction) {
         if let thunk = action as? Thunk<State> {
             thunk(store: store)
