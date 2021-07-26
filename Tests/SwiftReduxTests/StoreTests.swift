@@ -185,6 +185,18 @@ final class StoreTests: XCTestCase {
             )
         )
     }
+    
+    func testStoreSelectsState() {
+        let store = Store(
+            initialState: TestState(counter: 5),
+            reducer: TestReducer(),
+            middleware: ThunkMiddleware()
+        )
+        
+        let counter = store.select(\.counter)
+        
+        XCTAssertEqual(counter, 5)
+    }
 }
 
 private enum TestAction {

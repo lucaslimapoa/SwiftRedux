@@ -35,4 +35,8 @@ public final class Store<State>: ObservableObject, Storable {
     public func dispatch<Action>(action: Action) {
         dispatchWithMiddleware(action)
     }
+    
+    public func select<InnerState>(_ keyPath: KeyPath<State, InnerState>) -> InnerState {
+        state[keyPath: keyPath]
+    }
 }
