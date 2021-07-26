@@ -18,7 +18,7 @@ final class CombinedMiddlewareTests: XCTestCase {
         
         struct TestMiddleware: Middleware {
             let afterRun: () -> Void
-            func run(store: StoreProxy<TestState>, action: Action) {
+            func run(store: StoreProxy<TestState>, action: AnyAction) {
                 afterRun()
             }
         }
@@ -50,12 +50,12 @@ final class CombinedMiddlewareTests: XCTestCase {
 
 private final class StoreMock: Storable {
     var state = TestState()
-    func dispatch(action: Action) { }
+    func dispatch<Action>(action: Action) { }
 }
 
 private struct TestState { }
 
-private enum TestAction: Action {
+private enum TestAction {
     case someAction
 }
 

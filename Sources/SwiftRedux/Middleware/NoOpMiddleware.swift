@@ -8,5 +8,5 @@
 import Foundation
 
 struct NoOpMiddleware<State>: Middleware {
-    func run(store: StoreProxy<State>, action: Action) { }
+    func run(store: StoreProxy<State>, action: AnyAction) { }
 }

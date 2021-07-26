@@ -7,9 +7,13 @@
 
 import Foundation
 
-public final class StoreProxy<State> {
-    private let dispatch: (Action) -> Void
-    public let getState: () -> State
+public final class StoreProxy<State>: Storable {
+    private let dispatch: DispatchFunction<AnyAction>
+    private let getState: () -> State
+    
+    var state: State {
+        getState()
+    }
     
     init<T>(store: T) where T: Storable, T.State == State {
         self.getState = { [unowned store] in
@@ -21,7 +25,7 @@ public final class StoreProxy<State> {
         }
     }
     
-    public func dispatch(action: Action) {
+    public func dispatch<Action>(action: Action) {
         dispatch(action)
     }
 }

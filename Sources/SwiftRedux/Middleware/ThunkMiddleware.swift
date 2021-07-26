@@ -8,16 +8,16 @@
 import SwiftUI
 import Combine
 
-struct ThunkMiddleware<State>: Middleware {
+public final class ThunkMiddleware<State>: Middleware {
     private var cancellables = Set<AnyCancellable>()
     
-    func run(store: StoreProxy<State>, action: Action) {
-//        if let thunk = action as? AnyThunkAction<State> {
-//            thunk(store)
-//        } else if let thunkPublisher = action as? AnyThunkActionPublisher<State> {
-//            thunkPublisher(store)
-//                .sink(receiveValue: store.dispatch)
-//                .store(in: &cancellables)
-//        }
+    public func run(store: StoreProxy<State>, action: AnyAction) {
+        if let thunk = action as? Thunk<State> {
+            thunk(store: store)
+        } else if let thunkPublisher = action as? ThunkPublisher<State> {
+            thunkPublisher(store: store)
+                .sink(receiveValue: store.dispatch)
+                .store(in: &cancellables)
+        }
     }
 }

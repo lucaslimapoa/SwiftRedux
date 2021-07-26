@@ -6,31 +6,16 @@
 //
 
 import Foundation
+import CloudKit
 
-//public struct Thunk<RootState> {
-//    private let thunk: (StoreAPI<RootState>) -> Void
-//    
-//    public init(_ thunk: @escaping (StoreAPI<RootState>) -> Void) {
-//        self.thunk = thunk
-//    }
-//    
-//    public func callAsFunction(_ store: StoreAPI<RootState>) {
-//        thunk(store)
-//    }
-//    
-//    func eraseToAnyThunkAction() -> AnyThunkAction<RootState> {
-//        AnyThunkAction(self)
-//    }
-//}
-//
-//struct AnyThunkAction<State>: Action {
-//    private let thunk: (StoreAPI<State>) -> Void
-//    
-//    init(_ thunk: Thunk<State>) {
-//        self.thunk = thunk.callAsFunction(_:)
-//    }
-//    
-//    func callAsFunction(_ store: StoreAPI<State>) {
-//        thunk(store)
-//    }
-//}
+public struct Thunk<State> {
+    private let thunk: (StoreProxy<State>) -> Void
+    
+    public init(_ thunk: @escaping (StoreProxy<State>) -> Void) {
+        self.thunk = thunk
+    }
+    
+    public func callAsFunction(store: StoreProxy<State>) {
+        thunk(store)
+    }
+}

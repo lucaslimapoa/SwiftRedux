@@ -15,7 +15,7 @@ public protocol Reducer {
 }
 
 extension Reducer {
-    func tryReduce(state: inout State, action: Action) {
+    func tryReduce(state: inout State, action: AnyAction) {
         guard let action = action as? ActionType else { return }
         reduce(state: &state, action: action)
     }

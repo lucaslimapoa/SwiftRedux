@@ -9,11 +9,8 @@ import Foundation
 import Combine
 
 public final class Store<State>: ObservableObject, Storable {
-    typealias DispatchFunction = (Action) -> Void
-    
-    @Published public private(set) var state: State
-    private var dispatchWithMiddleware: DispatchFunction!
-    private var cancellables = Set<AnyCancellable>()
+    @Published public private(set) var state: State    
+    private var dispatchWithMiddleware: DispatchFunction<AnyAction>!
 
     public convenience init<R>(initialState: State, reducer: R) where R: Reducer, R.State == State {
         self.init(initialState: initialState, reducer: reducer, middleware: NoOpMiddleware())
@@ -30,34 +27,12 @@ public final class Store<State>: ObservableObject, Storable {
         }
     }
     
-    private init(initialState: State, dispatchWithMiddleware: @escaping DispatchFunction) {
+    private init(initialState: State, dispatchWithMiddleware: @escaping DispatchFunction<AnyAction>) {
         self.state = initialState
         self.dispatchWithMiddleware = dispatchWithMiddleware
     }
     
-    public func dispatch(action: Action) {
+    public func dispatch<Action>(action: Action) {
         dispatchWithMiddleware(action)
-    }
-    
-//    public func dispatch(action thunk: Thunk<State>) {
-//        dispatchWithMiddleware(thunk.eraseToAnyThunkAction())
-//    }
-//
-//    public func dispatch(action thunk: ThunkPublisher<State>) {
-//        dispatchWithMiddleware(thunk.eraseToAnyThunkActionPublisher())
-//    }
-    
-    public func scope<InnerState>(state keyPath: KeyPath<State, InnerState>) -> Store<InnerState> {
-        let scopeStore = Store<InnerState>(
-            initialState: state[keyPath: keyPath],
-            dispatchWithMiddleware: dispatchWithMiddleware
-        )
-
-        $state
-            .map(keyPath)
-            .assign(to: \.state, on: scopeStore)
-            .store(in: &cancellables)
-
-        return scopeStore
     }
 }

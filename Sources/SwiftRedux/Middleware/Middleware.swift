@@ -9,11 +9,11 @@ import Foundation
 
 public protocol Middleware {
     associatedtype State
-    func run(store: StoreProxy<State>, action: Action)
+    func run(store: StoreProxy<State>, action: AnyAction)
 }
 
 public struct CombinedMiddleware<State>: Middleware {
-    private let runClosure: (_ store: StoreProxy<State>, _ action: Action) -> Void
+    private let runClosure: (_ store: StoreProxy<State>, _ action: AnyAction) -> Void
     
     public static func apply<M>(_ middleware: M) -> CombinedMiddleware<State> where M: Middleware, M.State == State {
         CombinedMiddleware(runClosure: middleware.run(store:action:))
@@ -26,7 +26,7 @@ public struct CombinedMiddleware<State>: Middleware {
         }
     }
 
-    public func run(store: StoreProxy<State>, action: Action) {
+    public func run(store: StoreProxy<State>, action: AnyAction) {
         runClosure(store, action)
     }
 }

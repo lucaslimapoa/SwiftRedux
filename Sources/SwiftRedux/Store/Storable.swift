@@ -11,5 +11,5 @@ protocol Storable: AnyObject {
     associatedtype State
     var state: State { get }
     
-    func dispatch(action: Action)
+    func dispatch<Action>(action: Action)
 }

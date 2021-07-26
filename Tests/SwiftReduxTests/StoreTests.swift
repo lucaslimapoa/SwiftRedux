@@ -51,7 +51,7 @@ final class StoreTests: XCTestCase {
         struct TestMiddleware: Middleware {
             let expectation: XCTestExpectation
             
-            func run(store: StoreProxy<TestState>, action: Action) {
+            func run(store: StoreProxy<TestState>, action: AnyAction) {
                 expectation.fulfill()
             }
         }
@@ -73,14 +73,14 @@ final class StoreTests: XCTestCase {
 
         struct TestMiddleware1: Middleware {
             let expectation: XCTestExpectation
-            func run(store: StoreProxy<TestState>, action: Action) {
+            func run(store: StoreProxy<TestState>, action: AnyAction) {
                 expectation.fulfill()
             }
         }
 
         struct TestMiddleware2: Middleware {
             let expectation: XCTestExpectation
-            func run(store: StoreProxy<TestState>, action: Action) {
+            func run(store: StoreProxy<TestState>, action: AnyAction) {
                 expectation.fulfill()
             }
         }
@@ -97,109 +97,42 @@ final class StoreTests: XCTestCase {
 
         waitForExpectations(timeout: 1)
     }
-    
-    func testSliceStoreReturnsStoreSliceWithCurrentState() {
+
+    func testStoreCanDispatchThunkAction() {
+        let expectation = expectation(description: "store can dispatch thunk")
+
+        let thunk = Thunk<TestState> { store in
+            expectation.fulfill()
+        }
+
         let store = Store(
-            initialState: TestState(
-                innerState: InnerState(
-                    counter: 5
-                )
-            ),
-            reducer: TestReducer()
+            initialState: TestState(counter: 0),
+            reducer: TestReducer(),
+            middleware: ThunkMiddleware()
         )
 
-        let scope = store.scope(state: \.innerState)
+        store.dispatch(action: thunk)
 
-        XCTAssertEqual(scope.state.counter, 5)
+        waitForExpectations(timeout: 1)
     }
-    
-    func testSliceStoreDispatchesActionToStore() {
+
+    func testThunkActionPublisherIsExecuted() {
+        let thunkPublisher = ThunkPublisher<TestState> { store in
+            Just(TestAction.increaseCounter)
+                .eraseToAnyPublisher()
+        }
+
         let store = Store(
-            initialState: TestState(
-                innerState: InnerState(
-                    counter: 0
-                )
-            ),
-            reducer: TestReducer()
+            initialState: TestState(counter: 0),
+            reducer: TestReducer(),
+            middleware: ThunkMiddleware()
         )
 
-        let scope = store.scope(state: \.innerState)
-        scope.dispatch(action: TestAction.increaseInnerCounter)
+        store.dispatch(action: thunkPublisher)
 
-        XCTAssertEqual(scope.state.counter, 1)
+        XCTAssertEqual(store.state, TestState(counter: 1))
     }
 
-//    func testStoreCanDispatchThunkAction() {
-//        let expectation = expectation(description: "store can dispatch thunk")
-//
-//        let thunk = Thunk<TestState> { store in
-//            expectation.fulfill()
-//        }
-//
-//        let store = Store(
-//            initialState: TestState(counter: 0),
-//            reducer: testReducer
-//        )
-//
-//        store.dispatch(action: thunk)
-//
-//        waitForExpectations(timeout: 1)
-//    }
-//
-//    func testThunkActionWithStoreSliceIsExecuted() {
-//        let expectation = expectation(description: "should run thunk action in Store")
-//
-//        let thunk = Thunk<InnerState> { _ in
-//            expectation.fulfill()
-//        }
-//
-//        let store = Store(
-//            initialState: TestState(counter: 0),
-//            reducer: testReducer
-//        )
-//
-//        let scope = store.scope(state: \.innerState)
-//        scope.dispatch(action: thunk)
-//
-//        waitForExpectations(timeout: 1)
-//    }
-//
-//    func testThunkActionPublisherIsExecuted() {
-//        let thunkPublisher = ThunkPublisher<TestState> { store in
-//            Just(TestAction.increaseCounter)
-//                .eraseToAnyPublisher()
-//        }
-//
-//        let store = Store(
-//            initialState: TestState(counter: 0),
-//            reducer: testReducer
-//        )
-//
-//        store.dispatch(action: thunkPublisher)
-//
-//        XCTAssertEqual(store.state, TestState(counter: 1))
-//    }
-//
-//    func testThunkActionPublisherWithStoreSliceIsExecuted() {
-//        let expectation = expectation(description: "should run thunk action publisher in Store")
-//
-//        let thunkPublisher = ThunkPublisher<InnerState> { _ in
-//            expectation.fulfill()
-//            return Empty<Action, Never>(completeImmediately: true)
-//                .eraseToAnyPublisher()
-//        }
-//
-//        let store = Store(
-//            initialState: TestState(counter: 0),
-//            reducer: testReducer
-//        )
-//
-//        let scope = store.scope(state: \.innerState)
-//        scope.dispatch(action: thunkPublisher)
-//
-//        waitForExpectations(timeout: 1)
-//    }
-//
     func testCombineReducersUpdatesOnlyStateFromAGivenReducer() {
         struct AppState: Equatable {
             var subState1 = SubState1()
@@ -214,11 +147,11 @@ final class StoreTests: XCTestCase {
             var counter2 = 0
         }
 
-        enum SubState1Action: Action {
+        enum SubState1Action {
             case increase
         }
 
-        enum SubState2Action: Action {
+        enum SubState2Action {
             case increase
         }
 
@@ -254,7 +187,7 @@ final class StoreTests: XCTestCase {
     }
 }
 
-private enum TestAction: Action {
+private enum TestAction {
     case increaseCounter
     case increaseInnerCounter
 }
