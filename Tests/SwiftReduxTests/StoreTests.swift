@@ -42,9 +42,30 @@ final class StoreTests: XCTestCase {
 
         store.dispatch(action: TestAction.increaseCounter)
 
-        waitForExpectations(timeout: 1)
+        waitForExpectations(timeout: 0.1)
     }
 
+    func testStoreDoesNotSendObjectWillChangeIfStateIsEqual() {
+        var disposeBag = Set<AnyCancellable>()
+        let expectation = expectation(description: "should not have duplicate events")
+        expectation.isInverted = true
+        
+        let store = Store(
+            initialState: TestState(counter: 0),
+            reducer: TestReducer()
+        )
+
+        store.objectWillChange.dropFirst().sink {
+            expectation.fulfill()
+        }
+        .store(in: &disposeBag)
+
+        store.dispatch(action: TestAction.increaseCounter)
+        store.dispatch(action: TestAction.noop)
+
+        waitForExpectations(timeout: 0.1)
+    }
+    
     func testStoreRunsMiddlewareInDispatch() {
         let expectation = expectation(description: "should run middleware in dispatch")
 
@@ -64,7 +85,7 @@ final class StoreTests: XCTestCase {
 
         store.dispatch(action: TestAction.increaseCounter)
 
-        waitForExpectations(timeout: 1)
+        waitForExpectations(timeout: 0.1)
     }
 
     func testStoreRunsCombinedMiddleware() {
@@ -95,7 +116,7 @@ final class StoreTests: XCTestCase {
 
         store.dispatch(action: TestAction.increaseCounter)
 
-        waitForExpectations(timeout: 1)
+        waitForExpectations(timeout: 0.1)
     }
 
     func testStoreCanDispatchThunkAction() {
@@ -113,7 +134,7 @@ final class StoreTests: XCTestCase {
 
         store.dispatch(action: thunk)
 
-        waitForExpectations(timeout: 1)
+        waitForExpectations(timeout: 0.1)
     }
 
     func testThunkActionPublisherIsExecuted() {
@@ -202,6 +223,7 @@ final class StoreTests: XCTestCase {
 private enum TestAction {
     case increaseCounter
     case increaseInnerCounter
+    case noop
 }
 
 private struct InnerState: Equatable {
@@ -220,6 +242,8 @@ private struct TestReducer: Reducer {
             state.counter += 1
         case .increaseInnerCounter:
             state.innerState.counter += 1
+        case .noop:
+            break
         }
     }
 }

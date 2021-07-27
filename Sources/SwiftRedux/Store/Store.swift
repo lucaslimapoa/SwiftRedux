@@ -8,8 +8,14 @@
 import Foundation
 import Combine
 
-public final class Store<State>: ObservableObject, Storable {
-    @Published public private(set) var state: State    
+public final class Store<State>: ObservableObject, Storable where State: Equatable {
+    public private(set) var state: State {
+        willSet {
+            guard newValue != state else { return }
+            objectWillChange.send()
+        }
+    }
+    
     private var dispatchWithMiddleware: DispatchFunction<AnyAction>!
 
     public convenience init<R>(initialState: State, reducer: R) where R: Reducer, R.State == State {
