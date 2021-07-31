@@ -11,7 +11,7 @@ public final class StoreProxy<State>: Storable {
     private let dispatch: DispatchFunction<AnyAction>
     private let getState: () -> State
     
-    var state: State {
+    public var state: State {
         getState()
     }
     

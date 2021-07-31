@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol Storable: AnyObject {
+public protocol Storable: AnyObject {
     associatedtype State
     var state: State { get }
     
