@@ -9,10 +9,10 @@ import SwiftUI
 
 extension View {
     @discardableResult
-    public func store<S>(_ store: S) -> some View where S: Storable, S: ObservableObject {
+    public func store<S>(_ store: S) -> some View where S: Storable, S: ObservableObject, S.State: Equatable {
         // Need to find a way to unit test this
         // When the unit tests run, the environment object is nil
         environmentObject(store)
-            .environment(\.useDispatch, Dispatcher(store.dispatch(action:)))
+            .environment(\.store, AnyStorable(store))
     }
 }
