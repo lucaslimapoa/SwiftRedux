@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-public final class Store<State>: ObservableObject, Storable where State: Equatable {
+public final class Store<State>: ObservableObject where State: Equatable {
     public private(set) var state: State {
         willSet {
             guard newValue != state else { return }
@@ -33,16 +33,9 @@ public final class Store<State>: ObservableObject, Storable where State: Equatab
         }
     }
     
-    private init(initialState: State, dispatchWithMiddleware: @escaping DispatchFunction<AnyAction>) {
-        self.state = initialState
-        self.dispatchWithMiddleware = dispatchWithMiddleware
-    }
-    
     public func dispatch<Action>(action: Action) {
         dispatchWithMiddleware(action)
     }
-    
-    public func select<InnerState>(_ keyPath: KeyPath<State, InnerState>) -> InnerState {
-        state[keyPath: keyPath]
-    }
 }
+
+extension Store: Storable { }
