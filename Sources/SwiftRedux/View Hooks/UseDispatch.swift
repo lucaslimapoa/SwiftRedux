@@ -9,14 +9,10 @@ import SwiftUI
 
 @propertyWrapper
 public struct UseDispatch<ActionType>: DynamicProperty {
-    @Environment(\.store) private var store
+    @Environment(\.dispatch) private var dispatch
     
     public var wrappedValue: DispatchFunction<ActionType> {
-        guard let store = store else {
-            fatalError("Store not registered or used from View.init(). Use .store(_:) modifier to register the store. UseDispatch can only be used from `var body: some View`.")
-        }
-        
-        return store.dispatch(action:)
+        dispatch
     }
     
     public init() { }

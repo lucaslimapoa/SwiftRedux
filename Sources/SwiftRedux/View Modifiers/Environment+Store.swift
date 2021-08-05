@@ -7,13 +7,15 @@
 
 import SwiftUI
 
-private struct StoreEnvironmentKey: EnvironmentKey {
-    static let defaultValue: AnyStorable? = nil
+private struct DispatchEnvironmentKey: EnvironmentKey {
+    static let defaultValue: DispatchFunction<AnyAction> = { _ in
+        fatalError("Store not registered or used from View.init(). Use .store(_:) modifier to register the store. UseDispatch can only be used from `var body: some View`.")
+    }
 }
 
 extension EnvironmentValues {
-    var store: AnyStorable? {
-        get { self[StoreEnvironmentKey.self] }
-        set { self[StoreEnvironmentKey.self] = newValue }
+    var dispatch: DispatchFunction<AnyAction> {
+        get { self[DispatchEnvironmentKey.self] }
+        set { self[DispatchEnvironmentKey.self] = newValue }
     }
 }
