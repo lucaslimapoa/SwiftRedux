@@ -13,6 +13,6 @@ extension View {
         // Need to find a way to unit test this
         // When the unit tests run, the environment object is nil
         environmentObject(store)
-            .environment(\.dispatch, store.dispatch(action:))
+            .environment(\.dispatch, Dispatcher(store.dispatch(action:)))
     }
 }

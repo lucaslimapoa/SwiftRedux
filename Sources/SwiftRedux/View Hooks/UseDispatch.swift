@@ -11,8 +11,10 @@ import SwiftUI
 public struct UseDispatch<ActionType>: DynamicProperty {
     @Environment(\.dispatch) private var dispatch
     
-    public var wrappedValue: DispatchFunction<ActionType> {
-        dispatch
+    public var wrappedValue: Dispatcher<ActionType> {
+        Dispatcher { action in
+            dispatch(action: action)
+        }
     }
     
     public init() { }
