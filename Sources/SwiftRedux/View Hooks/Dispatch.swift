@@ -8,7 +8,7 @@
 import SwiftUI
 
 @propertyWrapper
-public struct UseDispatch<ActionType>: DynamicProperty {
+public struct Dispatch<ActionType>: DynamicProperty {
     @Environment(\.dispatch) private var dispatch
     
     public var wrappedValue: Dispatcher<ActionType> {
