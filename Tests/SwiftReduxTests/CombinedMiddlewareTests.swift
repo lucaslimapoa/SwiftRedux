@@ -14,12 +14,13 @@ import XCTest
 final class CombinedMiddlewareTests: XCTestCase {
     func testMiddlewareIsInvokedInSequence() {
         let expectation = expectation(description: "should call middleware in sequence")
-        expectation.expectedFulfillmentCount = 2
+        expectation.expectedFulfillmentCount = 3
         
         struct TestMiddleware: Middleware {
             let afterRun: () -> Void
-            func run(store: StoreProxy<TestState>, action: AnyAction) {
+            func run(store: StoreProxy<TestState>, next: (AnyAction) -> Void, action: AnyAction) {
                 afterRun()
+                next(action)
             }
         }
 
@@ -41,6 +42,9 @@ final class CombinedMiddlewareTests: XCTestCase {
 
         sut.run(
             store: StoreProxy<TestState>(store: StoreMock()),
+            next: { _ in
+                expectation.fulfill()
+            },
             action: TestAction.someAction
         )
         

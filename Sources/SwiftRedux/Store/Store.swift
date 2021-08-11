@@ -26,8 +26,11 @@ public final class Store<State>: ObservableObject where State: Equatable {
         self.state = initialState
         let storeProxy = StoreProxy(store: self)
         self.dispatchWithMiddleware = { action in
-            middleware.run(store: storeProxy, action: action)
-            reducer.reduceAny(state: &self.state, action: action)
+            middleware.run(
+                store: storeProxy,
+                next: { reducer.reduceAny(state: &self.state, action: $0) },
+                action: action
+            )
         }
     }
     

@@ -72,8 +72,9 @@ final class StoreTests: XCTestCase {
         struct TestMiddleware: Middleware {
             let expectation: XCTestExpectation
             
-            func run(store: StoreProxy<TestState>, action: AnyAction) {
+            func run(store: StoreProxy<TestState>, next: (AnyAction) -> Void, action: AnyAction) {
                 expectation.fulfill()
+                next(action)
             }
         }
 
@@ -94,15 +95,17 @@ final class StoreTests: XCTestCase {
 
         struct TestMiddleware1: Middleware {
             let expectation: XCTestExpectation
-            func run(store: StoreProxy<TestState>, action: AnyAction) {
+            func run(store: StoreProxy<TestState>, next: (AnyAction) -> Void, action: AnyAction) {
                 expectation.fulfill()
+                next(action)
             }
         }
 
         struct TestMiddleware2: Middleware {
             let expectation: XCTestExpectation
-            func run(store: StoreProxy<TestState>, action: AnyAction) {
+            func run(store: StoreProxy<TestState>, next: (AnyAction) -> Void, action: AnyAction) {
                 expectation.fulfill()
+                next(action)
             }
         }
         

@@ -13,13 +13,15 @@ public final class ThunkMiddleware<State>: Middleware {
     
     public init() { }
     
-    public func run(store: StoreProxy<State>, action: AnyAction) {
+    public func run(store: StoreProxy<State>, next: (AnyAction) -> Void, action: AnyAction) {
         if let thunk = action as? Thunk<State> {
             thunk(store: store)
         } else if let thunkPublisher = action as? ThunkPublisher<State> {
             thunkPublisher(store: store)
                 .sink(receiveValue: store.dispatch)
                 .store(in: &cancellables)
+        } else {
+            next(action)
         }
     }
 }

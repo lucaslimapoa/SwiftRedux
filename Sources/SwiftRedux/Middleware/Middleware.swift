@@ -9,5 +9,5 @@ import Foundation
 
 public protocol Middleware {
     associatedtype State
-    func run(store: StoreProxy<State>, action: AnyAction)
+    func run(store: StoreProxy<State>, next: (AnyAction) -> Void, action: AnyAction)
 }
