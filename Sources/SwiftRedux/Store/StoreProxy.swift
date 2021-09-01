@@ -31,7 +31,7 @@ public final class StoreProxy<State>: Storable {
         )
      )
      ```
-    */
+     */
     init<T>(store: T) where T: Storable, T.State == State {
         self.getState = { [unowned store] in
             store.state
@@ -51,7 +51,7 @@ public final class StoreProxy<State>: Storable {
      ```
      store.dispatch(action: CounterAction.increase)
      ```
-    */
+     */
     public func dispatch<Action>(action: Action) {
         dispatch(action)
     }

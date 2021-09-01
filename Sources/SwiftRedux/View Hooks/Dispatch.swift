@@ -19,7 +19,7 @@ import SwiftUI
     }
  }
  ```
-*/
+ */
 @propertyWrapper
 public struct Dispatch<ActionType>: DynamicProperty {
     @Environment(\.dispatch) private var dispatch

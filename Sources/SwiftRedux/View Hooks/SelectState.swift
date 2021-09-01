@@ -36,7 +36,7 @@ public struct SelectState<RootState, Value>: DynamicProperty where RootState: Eq
      }
      ```
      Each time the State is updated within the store, the SwiftUI View will be invalidated and the property wrapper will have the new state.
-    */
+     */
     public init(_ keyPath: KeyPath<RootState, Value>) {
         self.transform = { state in
             state[keyPath: keyPath]
@@ -63,7 +63,7 @@ public struct SelectState<RootState, Value>: DynamicProperty where RootState: Eq
      }
      ```
      Each time the State is updated within the store, the SwiftUI View will be invalidated and the property wrapper will have the new state.
-    */
+     */
     public init(_ transform: @escaping (RootState) -> Value) {
         self.transform = transform
     }

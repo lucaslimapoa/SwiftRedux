@@ -35,7 +35,7 @@ public final class Store<State>: ObservableObject where State: Equatable {
             .apply(reducer: Reducer(), for: \.field)
      )
      ```
-    */
+     */
     public convenience init<R>(initialState: State, reducer: R) where R: Reducer, R.State == State {
         self.init(initialState: initialState, reducer: reducer, middleware: NoOpMiddleware())
     }
@@ -59,7 +59,7 @@ public final class Store<State>: ObservableObject where State: Equatable {
             .apply(AnotherMiddleware())
      )
      ```
-    */
+     */
     public init<R, M>(initialState: State, reducer: R, middleware: M) where R: Reducer, R.State == State, M: Middleware, M.State == State {
         self.state = initialState
         let storeProxy = StoreProxy(store: self)
@@ -81,7 +81,7 @@ public final class Store<State>: ObservableObject where State: Equatable {
      ```
      store.dispatch(action: CounterAction.increase)
      ```
-    */
+     */
     public func dispatch<Action>(action: Action) {
         dispatchWithMiddleware(action)
     }
