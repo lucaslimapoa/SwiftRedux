@@ -7,6 +7,9 @@
 
 import Combine
 
+/**
+ An action used for running async logic, such as API requests.
+ */
 public struct ThunkPublisher<State> {
     private let thunk: (StoreProxy<State>) -> AnyPublisher<AnyAction, Never>
     
