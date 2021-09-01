@@ -8,6 +8,10 @@
 import SwiftUI
 import Combine
 
+/**
+ A middleware responsible for handling `Thunk<State>` and `ThunkPublisher<State>` actions.
+ Such actions are handled and then prevented from going through the next middleware.
+ */
 public final class ThunkMiddleware<State>: Middleware {
     private var cancellables = Set<AnyCancellable>()
     
