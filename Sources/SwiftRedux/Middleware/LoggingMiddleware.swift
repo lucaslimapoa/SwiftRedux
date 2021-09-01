@@ -7,6 +7,9 @@
 
 import Foundation
 
+/**
+ A logging middleware that outputs to the Xcode console an action that caused the state to change as well as the old and new state, represented with ---- and ++++ respectively.
+ */
 public final class LoggingMiddleware<State>: Middleware {
     private var previousLogString = ""
     
