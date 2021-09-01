@@ -59,7 +59,6 @@ public final class Store<State>: ObservableObject where State: Equatable {
             .apply(AnotherMiddleware())
      )
      ```
-     If middleware composition is needed, use CombinedMiddleware.
     */
     public init<R, M>(initialState: State, reducer: R, middleware: M) where R: Reducer, R.State == State, M: Middleware, M.State == State {
         self.state = initialState
@@ -82,7 +81,6 @@ public final class Store<State>: ObservableObject where State: Equatable {
      ```
      store.dispatch(action: CounterAction.increase)
      ```
-     If middleware composition is needed, use CombinedMiddleware.
     */
     public func dispatch<Action>(action: Action) {
         dispatchWithMiddleware(action)
