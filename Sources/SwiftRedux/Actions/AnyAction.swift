@@ -7,4 +7,7 @@
 
 import Foundation
 
+/**
+ A type erased action.
+ */
 public typealias AnyAction = Any
