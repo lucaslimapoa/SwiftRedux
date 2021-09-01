@@ -8,6 +8,9 @@
 import Foundation
 import CloudKit
 
+/**
+ An action used for running async logic, such as API requests.
+ */
 public struct Thunk<State> {
     private let thunk: (StoreProxy<State>) -> Void
     
