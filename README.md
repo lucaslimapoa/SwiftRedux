@@ -35,8 +35,8 @@ For starters, let's create a simple Counter app.
 First, define a state for our app.
 
 ```swift
-struct AppState {
-  var count = 0
+struct AppState: Equatable {
+  var counter = 0
 }
 ```
 
@@ -93,7 +93,7 @@ The SwiftUI view would then look like this:
 ```swift
 struct ContentView: View {
     @Dispatch<CounterAction> private var dispatch
-    @SelectState<\AppState.counter> private var counter
+    @SelectState(\AppState.counter) private var counter
 
     var body: some View {
         VStack {
